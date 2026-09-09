@@ -1,0 +1,5 @@
+screenshots/
+rapport/
+__pycache__/
+.pytest_cache/
+*.pyc
