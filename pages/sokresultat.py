@@ -1,12 +1,16 @@
+import re
+
+
 class Sokresultat:
     def __init__(self, page):
         self.page = page
 
-    def vanta_pa_resultat(self):
-        self.page.wait_for_load_state('networkidle')
+    def resultat_lankar(self, sokord):
+        return self.page.locator('main').get_by_role('link', name=re.compile(sokord, re.I))
 
-    def antal_resultat(self):
-        return self.page.locator('.search-result, article, .result').count()
+    def antal_resultat(self, sokord):
+        return self.resultat_lankar(sokord).count()
 
-    def forsta_resultat_text(self):
-        return self.page.locator('h2, h3').first.text_content()
+    def oppna_forsta(self, sokord):
+        self.resultat_lankar(sokord).first.click()
+        self.page.wait_for_load_state('domcontentloaded')

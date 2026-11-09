@@ -1,17 +1,16 @@
-class Kontakt:
-    def __init__(self, page):
-        self.page = page
-        self.url = 'https://vuxenutbildning.stockholm/kontakt'
+import re
+from pages.bas import BasSida
 
-    def ga_till(self):
-        self.page.goto(self.url)
+
+class Kontakt(BasSida):
+    # Sajten har ingen /kontakt-sida, kontaktuppgifterna finns har
+    sokvag = '/vuxenutbildningscentrum/'
 
     def telefon_finns(self):
-        text = self.page.content().lower()
-        return '08-' in text or 'tel:' in text
+        if self.page.locator('a[href^="tel:"]').count() > 0:
+            return True
+        text = self.page.locator('body').inner_text()
+        return re.search(r'0\d{1,3}[-\s]\d{2,3}[\s\d]{3,}', text) is not None
 
-    def email_finns(self):
-        return self.page.locator('a[href^="mailto:"]').count() > 0
-
-    def ta_skarmdum(self):
-        self.page.screenshot(path='screenshots/kontakt.png')
+    def fraga_lank(self):
+        return self.page.get_by_role('link', name=re.compile('ställ en fråga', re.I)).first

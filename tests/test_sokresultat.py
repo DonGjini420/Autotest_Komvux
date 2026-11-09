@@ -1,28 +1,13 @@
-import sys
-sys.path.insert(0, '.')
+import pytest
 from pages.startsida import Startsida
 from pages.sokresultat import Sokresultat
 
-def test_sok_utbildning(page):
-    sida = Startsida(page)
-    sida.ga_till()
-    try:
-        page.locator('input[type="search"], input[type="text"], input[placeholder*="ok"], [role="search"] input').first.fill('matematik')
-        page.keyboard.press('Enter')
-        page.wait_for_load_state('networkidle')
-        assert page.url != 'https://vuxenutbildning.stockholm'
-    except:
-        page.screenshot(path='screenshots/sok_fel.png')
-        print('Sokfalt hittades inte')
 
-def test_sokresultat_visas(page):
+@pytest.mark.parametrize('sokord', ['matematik', 'svenska'])
+def test_sok_ger_resultat(page, sokord):
     sida = Startsida(page)
     sida.ga_till()
-    try:
-        page.locator('input[type="search"], input[type="text"], input[placeholder*="ok"], [role="search"] input').first.fill('svenska')
-        page.keyboard.press('Enter')
-        page.wait_for_load_state('networkidle')
-        assert page.url is not None
-    except:
-        page.screenshot(path='screenshots/sokresultat_fel.png')
-        print('Sokfalt hittades inte')
+    start_url = page.url
+    sida.sok(sokord)
+    assert page.url != start_url, 'Sokningen ledde inte till en ny sida'
+    assert Sokresultat(page).antal_resultat(sokord) > 0, f'Inga traffar for "{sokord}"'

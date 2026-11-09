@@ -1,30 +1,31 @@
-import sys
-sys.path.insert(0, '.')
 from pages.kursinfo import Kursinfo
 
-def test_kursinfo_har_rubrik(page):
-    page.goto('https://vuxenutbildning.stockholm')
-    kurs = Kursinfo(page)
-    rubrik = kurs.hamta_rubrik()
-    assert len(rubrik) > 0
 
-def test_kursinfo_har_beskrivning(page):
-    page.goto('https://vuxenutbildning.stockholm')
-    kurs = Kursinfo(page)
-    beskrivning = kurs.hamta_kursbeskrivning()
-    assert len(beskrivning) > 0
+def test_kurssida_svarar_200(page):
+    sida = Kursinfo(page)
+    sida.ga_till()
+    assert sida.status() == 200
 
-def test_kursinfo_har_bilder(page):
-    page.goto('https://vuxenutbildning.stockholm')
-    assert page.locator('img').count() > 0
 
-def test_kursinfo_inga_brutna_lankar(page):
-    page.goto('https://vuxenutbildning.stockholm')
-    lankar = page.locator('a').all()
-    assert len(lankar) > 0
+def test_kurssida_har_rubrik(page):
+    sida = Kursinfo(page)
+    sida.ga_till()
+    assert 'komvux' in sida.hamta_rubrik().lower()
 
-def test_kursinfo_skarmdum(page):
-    page.goto('https://vuxenutbildning.stockholm')
-    page.screenshot(path='screenshots/kursinfo.png')
-    import os
-    assert os.path.exists('screenshots/kursinfo.png')
+
+def test_kurssida_har_beskrivning(page):
+    sida = Kursinfo(page)
+    sida.ga_till()
+    assert len(sida.hamta_kursbeskrivning()) > 20
+
+
+def test_kurssida_har_ansokan_lank(page):
+    sida = Kursinfo(page)
+    sida.ga_till()
+    assert sida.ansokan_lank().is_visible()
+
+
+def test_kurssida_lankar_till_kurskatalogen(page):
+    sida = Kursinfo(page)
+    sida.ga_till()
+    assert sida.kurskatalog_lank().count() == 1

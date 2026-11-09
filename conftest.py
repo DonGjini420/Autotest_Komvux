@@ -1,18 +1,25 @@
-﻿import os
+import os
 import pytest
-from playwright.sync_api import sync_playwright
 
 BASE_URL = 'https://vuxenutbildning.stockholm'
 
-@pytest.fixture(scope='session')
-def browser():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=os.getenv('CI') == 'true')
-        yield browser
-        browser.close()
 
-@pytest.fixture
-def page(browser):
-    page = browser.new_page()
-    yield page
-    page.close()
+@pytest.fixture(scope='session')
+def base_url():
+    # pytest-playwright anvander base_url, sa page.goto('/kontakt') fungerar
+    return BASE_URL
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    # Ta skarmdump automatiskt nar ett test misslyckas
+    outcome = yield
+    rapport = outcome.get_result()
+    if rapport.when == 'call' and rapport.failed:
+        page = item.funcargs.get('page')
+        if page is not None:
+            os.makedirs('screenshots', exist_ok=True)
+            try:
+                page.screenshot(path=f'screenshots/{item.name}.png', full_page=True)
+            except Exception:
+                pass

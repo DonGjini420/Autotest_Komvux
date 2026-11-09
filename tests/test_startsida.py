@@ -1,35 +1,42 @@
-import sys
-sys.path.insert(0, '.')
 from pages.startsida import Startsida
 
-def test_startsidan_laddar(page):
+
+def test_startsidan_svarar_200(page):
     sida = Startsida(page)
     sida.ga_till()
-    assert 'vuxenutbildning' in page.url.lower()
+    assert sida.status() == 200
+
+
+def test_startsidan_https(page):
+    Startsida(page).ga_till()
+    assert page.url.startswith('https://')
+
 
 def test_startsidan_har_titel(page):
     sida = Startsida(page)
     sida.ga_till()
-    assert len(sida.titel()) > 0
+    assert sida.titel().strip() != ''
 
-def test_startsidan_https(page):
-    sida = Startsida(page)
-    sida.ga_till()
-    assert page.url.startswith('https://')
 
 def test_startsidan_har_navigation(page):
-    sida = Startsida(page)
-    sida.ga_till()
-    assert page.locator('nav, header').count() > 0
+    Startsida(page).ga_till()
+    assert page.locator('nav').count() > 0
 
-def test_startsidan_har_lankar(page):
-    sida = Startsida(page)
-    sida.ga_till()
-    assert page.locator('a').count() > 0
 
-def test_startsidan_skarmdum(page):
+def test_startsidan_har_sok_lank(page):
     sida = Startsida(page)
     sida.ga_till()
-    page.screenshot(path='screenshots/startsida.png')
-    import os
-    assert os.path.exists('screenshots/startsida.png')
+    assert sida.sok_lank().is_visible()
+
+
+def test_startsidan_inga_brutna_lankar(page):
+    sida = Startsida(page)
+    sida.ga_till()
+    lankar = sida.interna_lankar()
+    assert len(lankar) > 0
+    brutna = []
+    for url in lankar:
+        svar = page.request.get(url)
+        if svar.status >= 400:
+            brutna.append(f'{svar.status} {url}')
+    assert brutna == [], 'Brutna lankar:\n' + '\n'.join(brutna)

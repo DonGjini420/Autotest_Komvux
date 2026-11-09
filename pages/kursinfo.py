@@ -1,12 +1,23 @@
-class Kursinfo:
-    def __init__(self, page):
-        self.page = page
+import re
+from pages.bas import BasSida
+
+
+class Kursinfo(BasSida):
+    # Informationssidan om komvux pa gymnasieniva
+    sokvag = '/gymnasial-komvux/'
 
     def hamta_rubrik(self):
-        return self.page.locator('h1').first.text_content()
+        return (self.page.locator('h1').first.text_content() or '').strip()
 
     def hamta_kursbeskrivning(self):
-        return self.page.locator('p').first.text_content()
+        # Forsta stycket i huvudinnehallet som faktiskt innehaller text
+        for text in self.page.locator('main p').all_text_contents():
+            if text.strip():
+                return text.strip()
+        return ''
 
-    def ansokan_knapp_finns(self):
-        return self.page.locator('a:has-text("Ansok"), button:has-text("Ansok")').count() > 0
+    def ansokan_lank(self):
+        return self.page.get_by_role('link', name=re.compile('ansök till komvux', re.I)).first
+
+    def kurskatalog_lank(self):
+        return self.page.locator('a[href*="komvux.stockholm.se"]').first
