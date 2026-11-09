@@ -1,0 +1,39 @@
+﻿name: Autotester
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Installera beroenden
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Skapa mappar
+        run: mkdir -p screenshots rapport
+
+      - name: Kor tester
+        run: pytest tests/ -v --html=rapport/testrapport.html --self-contained-html
+
+      - name: Spara rapport och skarmdumpar
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testrapport
+          path: |
+            rapport/
+            screenshots/
